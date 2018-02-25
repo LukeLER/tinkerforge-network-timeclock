@@ -16,14 +16,14 @@ import time
 
 HOST = "192.168.178.10"
 PORT = 4223
-UID_RTC = "xPB" # UID of Real-Time Clock Bricklet
-UID_DR = "A6u" 
-UID_RLB_1 = "Daq"
-UID_RLB_2 = "Dap"
-UID_OLED = "yjC"
-UID_TEMP = "7xw"
-UID_MB1 = "5VGL9A"
-UID_MB2 = "6esDec"
+UID_RTC = "xPB"     # UID of Real-Time Clock Bricklet
+UID_DR = "A6u"      # UID of Dual Relay Bricklet
+UID_RLB_1 = "Daq"   # UID of RGB LED Button Bricklet #1
+UID_RLB_2 = "Dap"   # UID of RGB LED Button Bricklet #2
+UID_OLED = "yjC"    # UID of OLED128 Bricklet
+UID_TEMP = "7xw"    # UID of Temperature Bricklet
+UID_MB1 = "5VGL9A"  # UID of Master Brick #1
+UID_MB2 = "6esDec"  # UID of Master Brick #2
 
 #***********SilentModus***********************
 silent = True # False for enabling Status LED*
