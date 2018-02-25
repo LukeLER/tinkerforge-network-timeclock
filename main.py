@@ -45,15 +45,16 @@ from tinkerforge.bricklet_oled_128x64 import BrickletOLED128x64
 def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, timestamp):
     global opened
 
-    #print("Year: " + str(year))
-    #print("Month: " + str(month))
-    #print("Hour: " + str(hour))
-    #print("Minute: " + str(minute))
-    #print("Second: " + str(second))
-    #print("Weekday: " + str(weekday))
-    #print("")
-    #oled.clear_display()
-   
+    if second == 0 or second == 1 or second == 2 or second == 3 or second == 4 or second == 5 or second == 6 or second == 7 or second == 8 or second == 9:
+      second = "0"+str(second)
+    if minute == 0 or minute == 1 or minute == 2 or minute == 3 or minute == 4 or minute == 5 or minute == 6 or minute == 7 or minute == 8 or minute == 9:
+      minute = "0"+str(minute)
+    if hour == 0 or hour == 1 or hour == 2 or hour == 3 or hour == 4 or hour == 5 or hour == 6 or hour == 7 or hour == 8 or hour == 9:
+      hour = "0"+str(hour)
+    if day == 0 or day == 1 or day == 2 or day == 3 or day == 4 or day == 5 or day == 6 or day == 7 or day == 8 or day == 9:
+      day = "0"+str(day)
+    if month == 0 or month == 1 or month == 2 or month == 3 or month == 4 or month == 5 or month == 6 or month == 7 or month == 8 or month == 9:
+      month = "0"+str(month)
     
     oled.write_line(0, 2, str(day)+"."+str(month)+"."+str(year)+" | "+str(hour)+":"+str(minute)+":"+str(second))
     
