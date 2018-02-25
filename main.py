@@ -14,7 +14,7 @@
 
 import time
 
-HOST = "localhost"
+HOST = "192.168.178.10"
 PORT = 4223
 UID_RTC = "xPB" # UID of Real-Time Clock Bricklet
 UID_DR = "A6u" 
@@ -22,18 +22,19 @@ UID_RLB_1 = "Daq"
 UID_RLB_2 = "Dap"
 UID_OLED = "yjC"
 
-openH = 17
-openM = 47
-closeH = 17
-closeM = 48
+openH = 18
+openM = 28
+closeH = 18
+closeM = 31
 
 global opened
 global activCH1
 global activCH2
-
 opened = 0
 activCH1 = False
 activCH2 = False
+
+brightness = 5
 
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_real_time_clock import BrickletRealTimeClock
@@ -60,13 +61,13 @@ def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, t
     
     if opened == 0:
       if hour == openH:
-        print("Correct open hour")
+        #print("Correct open hour")
         if minute == openM:
           print("Correct open minute")
           oled.write_line(3, 0, "Beleuchtung:      EIN")
           oled.write_line(4, 0, "Beschattung:     OBEN")
-          rlb1.set_color(0,20,0)
-          rlb2.set_color(0,20,0)
+          rlb1.set_color(0,brightness,0)
+          rlb2.set_color(0,brightness,0)
           dr.set_state(True, True)
           time.sleep(2)
           dr.set_state(False, True)
@@ -74,18 +75,18 @@ def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, t
 
     if opened == 1:
       if hour == closeH:
-        print("Correct close hour")
+        #print("Correct close hour")
         if minute == closeM:
           print("Correct close minute")
           oled.write_line(4, 0, "Beschattung:    UNTEN")
-          rlb1.set_color(20,0,0)
+          rlb1.set_color(brightness,0,0)
           dr.set_state(True, True)
           time.sleep(2)
           dr.set_state(False, True)
           time.sleep(10)
           dr.set_state(False, False)
           oled.write_line(3, 0, "Beleuchtung:      AUS")
-          rlb2.set_color(20,0,0)
+          rlb2.set_color(brightness,0,0)
           opened = 0
     
 #def cb_alarm(year, month, day, hour, minute, second, centisecond, weekday, timestamp):
@@ -103,18 +104,20 @@ def cb_button1_state_changed(state):
         else:
             activCH1 = False
         if activCH1 == True:
-            oled.write_line(4, 0, "Beschattung:    UNTEN")
-            rlb1.set_color(20,4,0)
+            oled.write_line(4, 0, "Beschattung:   faehrt")
+            rlb1.set_color(brightness,(brightness/5),0)
             dr.set_monoflop(1, True, 1500)
             time.sleep(5)
-            rlb1.set_color(20,0,0)
+            rlb1.set_color(brightness,0,0)
+            oled.write_line(4, 0, "Beschattung:    UNTEN")
             opened = 0
         else:
-            oled.write_line(4, 0, "Beschattung:     OBEN")
-            rlb1.set_color(20,4,0)
+            oled.write_line(4, 0, "Beschattung:   faehrt")
+            rlb1.set_color(brightness,(brightness/5),0)
             dr.set_monoflop(1, True, 1500)
             time.sleep(5)
-            rlb1.set_color(0,20,0)
+            rlb1.set_color(0,brightness,0)
+            oled.write_line(4, 0, "Beschattung:     OBEN")
             opened = 1
 
 def cb_button2_state_changed(state):
@@ -128,11 +131,11 @@ def cb_button2_state_changed(state):
         if activCH2 == True:
             dr.set_selected_state(2, False)
             oled.write_line(3, 0, "Beleuchtung:      AUS")
-            rlb2.set_color(20,0,0)
+            rlb2.set_color(brightness,0,0)
         else:
             dr.set_selected_state(2, True)
             oled.write_line(3, 0, "Beleuchtung:      EIN")
-            rlb2.set_color(0,20,0)
+            rlb2.set_color(0,brightness,0)
 
 if __name__ == "__main__":
     ipcon = IPConnection() # Create IP connection
@@ -146,8 +149,8 @@ if __name__ == "__main__":
     # Don't use device before ipcon is connected
     
     dr.set_state(False, False)
-    rlb1.set_color(0, 20, 0) # Tor oben
-    rlb2.set_color(20, 0, 0) # Licht aus
+    rlb1.set_color(0, brightness, 0) # Tor oben
+    rlb2.set_color(brightness, 0, 0) # Licht aus
 
     # Register date and time callback to function cb_date_time
     rtc.register_callback(rtc.CALLBACK_DATE_TIME, cb_date_time)
@@ -160,12 +163,12 @@ if __name__ == "__main__":
     # Note: The date and time callback is only called every 5 seconds
     #       if the date and time has changed since the last call!
     rtc.set_date_time_callback_period(1000)
-    #rtc.set_alarm(-1, -1, 13, 17, -1, -1, -1)
+    #rtc.set_alarm(-1, -1, 3, 5, -1, -1, -1)
     
     oled.clear_display()
     oled.write_line(3, 0, "Beleuchtung:      AUS")
     oled.write_line(4, 0, "Beschattung:     OBEN")
-    oled.write_line(7, 0, "IP: localhost")
+    oled.write_line(7, 0, "IP: 192.168.178.10")
     
     raw_input("Press key to exit\n") # Use input() in Python 3
     ipcon.disconnect()
