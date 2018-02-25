@@ -10,9 +10,7 @@ Repository Content
 ------------------
 
 software/:
- * examples/: Examples for all supported languages
- * build/: Makefile and compiled files
- * src/: Source code of firmware
+ * Contains all software files
 
 hardware/:
  * Contains kicad project files and additionally schematics as pdf when available
