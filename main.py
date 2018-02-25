@@ -65,12 +65,12 @@ def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, t
       day = "0"+str(day)
     if month == 0 or month == 1 or month == 2 or month == 3 or month == 4 or month == 5 or month == 6 or month == 7 or month == 8 or month == 9:
       month = "0"+str(month)
-    
+
     oled.write_line(0, 2, str(day)+"."+str(month)+"."+str(year)+" | "+str(hour)+":"+str(minute)+":"+str(second))
-    
+
     temperature = temp.get_temperature()
     oled.write_line(5, 0, "Temperatur :     "+str(temperature/100.0))
-    
+
     if opened == 0:
       if hour == openH:
         #print("Correct open hour")
@@ -100,11 +100,22 @@ def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, t
           oled.write_line(3, 0, "Beleuchtung:      AUS")
           rlb2.set_color(brightness,0,0)
           opened = 0
-    
-#def cb_alarm(year, month, day, hour, minute, second, centisecond, weekday, timestamp):
-#    dr.set_state(True, True)
-#    time.sleep(2)
-#    dr.set_state(False, True)
+
+def cb_alarm(year, month, day, hour, minute, second, centisecond, weekday, timestamp):
+    global opened
+    oled.clear_display()
+    time.sleep(10)
+    status = dr.get_state()
+    if opened == 0:
+        oled.write_line(4, 0, "Beschattung:    UNTEN")
+    else:
+        oled.write_line(4, 0, "Beschattung:     OBEN")
+    if status.relay2 == True:
+        oled.write_line(3, 0, "Beleuchtung:      EIN")
+    else:
+        oled.write_line(3, 0, "Beleuchtung:      AUS")
+
+    oled.write_line(7, 0, "IP: 192.168.178.10")
 
 def cb_button1_state_changed(state):
     global activCH1
@@ -157,12 +168,12 @@ if __name__ == "__main__":
     rlb2 = BrickletRGBLEDButton(UID_RLB_2, ipcon) # Create device object
     oled = BrickletOLED128x64(UID_OLED, ipcon)    # Create device object
     temp = BrickletTemperature(UID_TEMP, ipcon)   # Create device object
-    mb1 = BrickMaster(UID_MB1, ipcon)                 # Create device object
-    mb2 = BrickMaster(UID_MB2, ipcon)                 # Create device object
+    mb1 = BrickMaster(UID_MB1, ipcon)             # Create device object
+    mb2 = BrickMaster(UID_MB2, ipcon)             # Create device object
 
     ipcon.connect(HOST, PORT) # Connect to brickd
     # Don't use device before ipcon is connected
-    
+
     #***********Brick-Config********************************************
     if silent == True:
         mb1.disable_status_led()
@@ -173,11 +184,11 @@ if __name__ == "__main__":
 
     #***********Dual-Relay-Config***************************************
     dr.set_state(False, False)
-    
+
     #***********Button-Config*******************************************
     rlb1.set_color(0, brightness, 0) # Tor oben
     rlb2.set_color(brightness, 0, 0) # Licht aus
-    
+
     if silent == True:
         rlb1.set_status_led_config(rlb1.STATUS_LED_CONFIG_OFF)
         rlb2.set_status_led_config(rlb2.STATUS_LED_CONFIG_OFF)
@@ -191,18 +202,19 @@ if __name__ == "__main__":
     #***********RTC-Config**********************************************
     # Register date and time callback to function cb_date_time
     rtc.register_callback(rtc.CALLBACK_DATE_TIME, cb_date_time)
-    #rtc.register_callback(rtc.CALLBACK_ALARM, cb_alarm)
+    rtc.register_callback(rtc.CALLBACK_ALARM, cb_alarm)
+    rtc.set_alarm(-1, -1, 4, 15, -1, -1, -1) # Reset OLED every morning
+
     # Set period for date and time callback to 5s (5000ms)
     # Note: The date and time callback is only called every 5 seconds
     #       if the date and time has changed since the last call!
     rtc.set_date_time_callback_period(1000)
-    #rtc.set_alarm(-1, -1, 3, 5, -1, -1, -1)
-    
+
     #***********OLED-Config*********************************************
     oled.clear_display()
     oled.write_line(3, 0, "Beleuchtung:      AUS")
     oled.write_line(4, 0, "Beschattung:     OBEN")
     oled.write_line(7, 0, "IP: 192.168.178.10")
-    
+
     raw_input("Press key to exit\n") # Use input() in Python 3
     ipcon.disconnect()
