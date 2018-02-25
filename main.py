@@ -9,7 +9,7 @@
 #                                                                      #
 # Relay Channel 1: Garagedoor                                          #
 # Relay Channel 2: Lights                                              #
-#                             s                                         #
+#                                                                      #
 ########################################################################
 
 import time
@@ -34,9 +34,11 @@ openM = 28
 closeH = 18
 closeM = 31
 
+global lastTimestamp
 global opened
 global activCH1
 global activCH2
+lastTimestamp = 0
 opened = 0
 activCH1 = False
 activCH2 = False
@@ -120,6 +122,8 @@ def cb_alarm(year, month, day, hour, minute, second, centisecond, weekday, times
 def cb_button1_state_changed(state):
     global activCH1
     global opened
+    global lastTimestamp
+    
     #print("State 1: " + str(state))
     if state == rlb1.BUTTON_STATE_PRESSED:
         if activCH1 == False:
@@ -129,19 +133,35 @@ def cb_button1_state_changed(state):
         if activCH1 == True:
             oled.write_line(4, 0, "Beschattung:   faehrt")
             rlb1.set_color(brightness,(brightness/5),0)
+            timestamp = rtc.get_timestamp()
+            if (timestamp - lastTimestamp) < 30000:
+                print("Zeit war zu kurz! Extraschaltung!")
+                dr.set_selected_state(1, True)
+                time.sleep(1)
+                dr.set_selected_state(1, False)
+                time.sleep(1)
             dr.set_monoflop(1, True, 1500)
             time.sleep(5)
             rlb1.set_color(brightness,0,0)
             oled.write_line(4, 0, "Beschattung:    UNTEN")
             opened = 0
+            lastTimestamp = timestamp
         else:
             oled.write_line(4, 0, "Beschattung:   faehrt")
             rlb1.set_color(brightness,(brightness/5),0)
+            timestamp = rtc.get_timestamp()
+            if (timestamp - lastTimestamp) < 30000:
+                print("Zeit war zu kurz! Extraschaltung!")
+                dr.set_selected_state(1, True)
+                time.sleep(1)
+                dr.set_selected_state(1, False)
+                time.sleep(1)
             dr.set_monoflop(1, True, 1500)
             time.sleep(5)
             rlb1.set_color(0,brightness,0)
             oled.write_line(4, 0, "Beschattung:     OBEN")
             opened = 1
+            lastTimestamp = timestamp
 
 def cb_button2_state_changed(state):
     global activCH2
