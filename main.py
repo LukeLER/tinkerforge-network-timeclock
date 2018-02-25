@@ -22,6 +22,8 @@ UID_RLB_1 = "Daq"
 UID_RLB_2 = "Dap"
 UID_OLED = "yjC"
 UID_TEMP = "7xw"
+UID_MB1 = "5VGL9A"
+UID_MB2 = "6esDec"
 
 openH = 18
 openM = 28
@@ -38,6 +40,7 @@ activCH2 = False
 brightness = 5
 
 from tinkerforge.ip_connection import IPConnection
+from tinkerforge.brick_master import BrickMaster
 from tinkerforge.bricklet_real_time_clock import BrickletRealTimeClock
 from tinkerforge.bricklet_dual_relay import BrickletDualRelay
 from tinkerforge.bricklet_rgb_led_button import BrickletRGBLEDButton
@@ -150,27 +153,40 @@ if __name__ == "__main__":
     rlb2 = BrickletRGBLEDButton(UID_RLB_2, ipcon) # Create device object
     oled = BrickletOLED128x64(UID_OLED, ipcon)    # Create device object
     temp = BrickletTemperature(UID_TEMP, ipcon)   # Create device object
+    mb1 = BrickMaster(UID_MB1, ipcon)                 # Create device object
+    mb2 = BrickMaster(UID_MB2, ipcon)                 # Create device object
 
     ipcon.connect(HOST, PORT) # Connect to brickd
     # Don't use device before ipcon is connected
     
+    #***********Brick-Config********************************************
+    mb1.disable_status_led()
+    mb2.disable_status_led()
+
+    #***********Dual-Relay-Config***************************************
     dr.set_state(False, False)
+    
+    #***********Button-Config*******************************************
     rlb1.set_color(0, brightness, 0) # Tor oben
     rlb2.set_color(brightness, 0, 0) # Licht aus
-
-    # Register date and time callback to function cb_date_time
-    rtc.register_callback(rtc.CALLBACK_DATE_TIME, cb_date_time)
-    #rtc.register_callback(rtc.CALLBACK_ALARM, cb_alarm)
     
+    rlb1.set_status_led_config(rlb1.STATUS_LED_CONFIG_OFF)
+    rlb2.set_status_led_config(rlb2.STATUS_LED_CONFIG_OFF)
+
     rlb1.register_callback(rlb1.CALLBACK_BUTTON_STATE_CHANGED, cb_button1_state_changed)
     rlb2.register_callback(rlb2.CALLBACK_BUTTON_STATE_CHANGED, cb_button2_state_changed)
 
+    #***********RTC-Config**********************************************
+    # Register date and time callback to function cb_date_time
+    rtc.register_callback(rtc.CALLBACK_DATE_TIME, cb_date_time)
+    #rtc.register_callback(rtc.CALLBACK_ALARM, cb_alarm)
     # Set period for date and time callback to 5s (5000ms)
     # Note: The date and time callback is only called every 5 seconds
     #       if the date and time has changed since the last call!
     rtc.set_date_time_callback_period(1000)
     #rtc.set_alarm(-1, -1, 3, 5, -1, -1, -1)
     
+    #***********OLED-Config*********************************************
     oled.clear_display()
     oled.write_line(3, 0, "Beleuchtung:      AUS")
     oled.write_line(4, 0, "Beschattung:     OBEN")
