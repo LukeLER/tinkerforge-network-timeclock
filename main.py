@@ -21,6 +21,7 @@ UID_DR = "A6u"
 UID_RLB_1 = "Daq"
 UID_RLB_2 = "Dap"
 UID_OLED = "yjC"
+UID_TEMP = "7xw"
 
 openH = 18
 openM = 28
@@ -41,6 +42,7 @@ from tinkerforge.bricklet_real_time_clock import BrickletRealTimeClock
 from tinkerforge.bricklet_dual_relay import BrickletDualRelay
 from tinkerforge.bricklet_rgb_led_button import BrickletRGBLEDButton
 from tinkerforge.bricklet_oled_128x64 import BrickletOLED128x64
+from tinkerforge.bricklet_temperature import BrickletTemperature
 
 # Callback function for date and timefrom tinkerforge.bricklet_dual_relay import BrickletDualRelay callback
 def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, timestamp):
@@ -58,6 +60,9 @@ def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, t
       month = "0"+str(month)
     
     oled.write_line(0, 2, str(day)+"."+str(month)+"."+str(year)+" | "+str(hour)+":"+str(minute)+":"+str(second))
+    
+    temperature = temp.get_temperature()
+    oled.write_line(5, 0, "Temperatur :     "+str(temperature/100.0))
     
     if opened == 0:
       if hour == openH:
@@ -139,11 +144,12 @@ def cb_button2_state_changed(state):
 
 if __name__ == "__main__":
     ipcon = IPConnection() # Create IP connection
-    rtc = BrickletRealTimeClock(UID_RTC, ipcon) # Create device object
-    dr = BrickletDualRelay(UID_DR, ipcon) # Create device object
+    rtc = BrickletRealTimeClock(UID_RTC, ipcon)   # Create device object
+    dr = BrickletDualRelay(UID_DR, ipcon)         # Create device object
     rlb1 = BrickletRGBLEDButton(UID_RLB_1, ipcon) # Create device object
     rlb2 = BrickletRGBLEDButton(UID_RLB_2, ipcon) # Create device object
-    oled = BrickletOLED128x64(UID_OLED, ipcon) # Create device object
+    oled = BrickletOLED128x64(UID_OLED, ipcon)    # Create device object
+    temp = BrickletTemperature(UID_TEMP, ipcon)   # Create device object
 
     ipcon.connect(HOST, PORT) # Connect to brickd
     # Don't use device before ipcon is connected
