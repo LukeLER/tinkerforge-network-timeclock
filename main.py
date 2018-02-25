@@ -1,20 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+########################################################################
+#                                                                      #
+# Timeclock for our Garage                                             #
+#                                                                      #
+# Copyright (C) 2018 by Lukas Lauer <lukas@doppel-l.de>                #
+#                                                                      #
+# Relay Channel 1: Garagedoor                                          #
+# Relay Channel 2: Lights                                              #
+#                             s                                         #
+########################################################################
+
 import time
 
 HOST = "localhost"
 PORT = 4223
 UID_RTC = "xPB" # UID of Real-Time Clock Bricklet
 UID_DR = "A6u" 
-UID_RLB_1 = "Dap"
-UID_RLB_2 = "Daq"
+UID_RLB_1 = "Daq"
+UID_RLB_2 = "Dap"
 UID_OLED = "yjC"
 
-openH = 15
-openM = 13
-closeH = 15
-closeM = 14
+openH = 17
+openM = 47
+closeH = 17
+closeM = 48
 
 global opened
 global activCH1
@@ -42,7 +53,8 @@ def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, t
     #print("Weekday: " + str(weekday))
     #print("")
     #oled.clear_display()
-
+   
+    
     oled.write_line(0, 2, str(day)+"."+str(month)+"."+str(year)+" | "+str(hour)+":"+str(minute)+":"+str(second))
     
     if opened == 0:
@@ -52,6 +64,8 @@ def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, t
           print("Correct open minute")
           oled.write_line(3, 0, "Beleuchtung:      EIN")
           oled.write_line(4, 0, "Beschattung:     OBEN")
+          rlb1.set_color(0,20,0)
+          rlb2.set_color(0,20,0)
           dr.set_state(True, True)
           time.sleep(2)
           dr.set_state(False, True)
@@ -63,12 +77,14 @@ def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, t
         if minute == closeM:
           print("Correct close minute")
           oled.write_line(4, 0, "Beschattung:    UNTEN")
+          rlb1.set_color(20,0,0)
           dr.set_state(True, True)
           time.sleep(2)
           dr.set_state(False, True)
           time.sleep(10)
           dr.set_state(False, False)
           oled.write_line(3, 0, "Beleuchtung:      AUS")
+          rlb2.set_color(20,0,0)
           opened = 0
     
 #def cb_alarm(year, month, day, hour, minute, second, centisecond, weekday, timestamp):
@@ -78,6 +94,7 @@ def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, t
 
 def cb_button1_state_changed(state):
     global activCH1
+    global opened
     #print("State 1: " + str(state))
     if state == rlb1.BUTTON_STATE_PRESSED:
         if activCH1 == False:
@@ -85,11 +102,19 @@ def cb_button1_state_changed(state):
         else:
             activCH1 = False
         if activCH1 == True:
-            #old0.write_line(1, 15, " MUTE ")
-            rlb1.set_color(100,0,0)
+            oled.write_line(4, 0, "Beschattung:    UNTEN")
+            rlb1.set_color(20,4,0)
+            dr.set_monoflop(1, True, 1500)
+            time.sleep(5)
+            rlb1.set_color(20,0,0)
+            opened = 0
         else:
-            #old0.write_line(1, 15, "      ")
-            rlb1.set_color(0,100,0)
+            oled.write_line(4, 0, "Beschattung:     OBEN")
+            rlb1.set_color(20,4,0)
+            dr.set_monoflop(1, True, 1500)
+            time.sleep(5)
+            rlb1.set_color(0,20,0)
+            opened = 1
 
 def cb_button2_state_changed(state):
     global activCH2
@@ -100,11 +125,13 @@ def cb_button2_state_changed(state):
         else:
             activCH2 = False
         if activCH2 == True:
-            #old0.write_line(1, 15, " MUTE ")
-            rlb2.set_color(100,0,0)
+            dr.set_selected_state(2, False)
+            oled.write_line(3, 0, "Beleuchtung:      AUS")
+            rlb2.set_color(20,0,0)
         else:
-            #old0.write_line(1, 15, "      ")
-            rlb2.set_color(0,100,0)
+            dr.set_selected_state(2, True)
+            oled.write_line(3, 0, "Beleuchtung:      EIN")
+            rlb2.set_color(0,20,0)
 
 if __name__ == "__main__":
     ipcon = IPConnection() # Create IP connection
@@ -118,8 +145,8 @@ if __name__ == "__main__":
     # Don't use device before ipcon is connected
     
     dr.set_state(False, False)
-    rlb1.set_color(0, 100, 0) # Tor oben
-    rlb2.set_color(100, 0, 0) # Licht aus
+    rlb1.set_color(0, 20, 0) # Tor oben
+    rlb2.set_color(20, 0, 0) # Licht aus
 
     # Register date and time callback to function cb_date_time
     rtc.register_callback(rtc.CALLBACK_DATE_TIME, cb_date_time)
@@ -133,7 +160,10 @@ if __name__ == "__main__":
     #       if the date and time has changed since the last call!
     rtc.set_date_time_callback_period(1000)
     #rtc.set_alarm(-1, -1, 13, 17, -1, -1, -1)
-
+    
+    oled.clear_display()
+    oled.write_line(3, 0, "Beleuchtung:      AUS")
+    oled.write_line(4, 0, "Beschattung:     OBEN")
     oled.write_line(7, 0, "IP: localhost")
     
     raw_input("Press key to exit\n") # Use input() in Python 3
