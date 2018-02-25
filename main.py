@@ -25,6 +25,10 @@ UID_TEMP = "7xw"
 UID_MB1 = "5VGL9A"
 UID_MB2 = "6esDec"
 
+#***********SilentModus***********************
+silent = True # False for enabling Status LED*
+#*********************************************
+
 openH = 18
 openM = 28
 closeH = 18
@@ -160,8 +164,12 @@ if __name__ == "__main__":
     # Don't use device before ipcon is connected
     
     #***********Brick-Config********************************************
-    mb1.disable_status_led()
-    mb2.disable_status_led()
+    if silent == True:
+        mb1.disable_status_led()
+        mb2.disable_status_led()
+    else:
+        mb1.enable_status_led()
+        mb2.enable_status_led()
 
     #***********Dual-Relay-Config***************************************
     dr.set_state(False, False)
@@ -170,8 +178,12 @@ if __name__ == "__main__":
     rlb1.set_color(0, brightness, 0) # Tor oben
     rlb2.set_color(brightness, 0, 0) # Licht aus
     
-    rlb1.set_status_led_config(rlb1.STATUS_LED_CONFIG_OFF)
-    rlb2.set_status_led_config(rlb2.STATUS_LED_CONFIG_OFF)
+    if silent == True:
+        rlb1.set_status_led_config(rlb1.STATUS_LED_CONFIG_OFF)
+        rlb2.set_status_led_config(rlb2.STATUS_LED_CONFIG_OFF)
+    else:
+        rlb1.set_status_led_config(rlb1.STATUS_LED_CONFIG_ON)
+        rlb2.set_status_led_config(rlb2.STATUS_LED_CONFIG_ON)
 
     rlb1.register_callback(rlb1.CALLBACK_BUTTON_STATE_CHANGED, cb_button1_state_changed)
     rlb2.register_callback(rlb2.CALLBACK_BUTTON_STATE_CHANGED, cb_button2_state_changed)
