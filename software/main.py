@@ -14,7 +14,7 @@
 
 import time
 
-HOST = "192.168.178.10"
+HOST = "localhost"
 PORT = 4223
 UID_RTC = "xPB"     # UID of Real-Time Clock Bricklet
 UID_DR = "A6u"      # UID of Dual Relay Bricklet
@@ -29,10 +29,10 @@ UID_MB2 = "6esDec"  # UID of Master Brick #2
 silent = True # False for enabling Status LED*
 #*********************************************
 
-openH = 18
-openM = 28
-closeH = 18
-closeM = 31
+openH = 6
+openM = 30
+closeH = 21
+closeM = 0
 
 global lastTimestamp
 global opened
@@ -43,7 +43,7 @@ opened = 0
 activCH1 = False
 activCH2 = False
 
-brightness = 5
+brightness = 30 # Brightness Winter: 5 ; Summer: 30
 
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.brick_master import BrickMaster
@@ -56,22 +56,6 @@ from tinkerforge.bricklet_temperature import BrickletTemperature
 # Callback function for date and timefrom tinkerforge.bricklet_dual_relay import BrickletDualRelay callback
 def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, timestamp):
     global opened
-
-    if second == 0 or second == 1 or second == 2 or second == 3 or second == 4 or second == 5 or second == 6 or second == 7 or second == 8 or second == 9:
-      second = "0"+str(second)
-    if minute == 0 or minute == 1 or minute == 2 or minute == 3 or minute == 4 or minute == 5 or minute == 6 or minute == 7 or minute == 8 or minute == 9:
-      minute = "0"+str(minute)
-    if hour == 0 or hour == 1 or hour == 2 or hour == 3 or hour == 4 or hour == 5 or hour == 6 or hour == 7 or hour == 8 or hour == 9:
-      hour = "0"+str(hour)
-    if day == 0 or day == 1 or day == 2 or day == 3 or day == 4 or day == 5 or day == 6 or day == 7 or day == 8 or day == 9:
-      day = "0"+str(day)
-    if month == 0 or month == 1 or month == 2 or month == 3 or month == 4 or month == 5 or month == 6 or month == 7 or month == 8 or month == 9:
-      month = "0"+str(month)
-
-    oled.write_line(0, 2, str(day)+"."+str(month)+"."+str(year)+" | "+str(hour)+":"+str(minute)+":"+str(second))
-
-    temperature = temp.get_temperature()
-    oled.write_line(5, 0, "Temperatur :     "+str(temperature/100.0))
 
     if opened == 0:
       if hour == openH:
@@ -102,6 +86,22 @@ def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, t
           oled.write_line(3, 0, "Beleuchtung:      AUS")
           rlb2.set_color(brightness,0,0)
           opened = 0
+
+    if second == 0 or second == 1 or second == 2 or second == 3 or second == 4 or second == 5 or second == 6 or second == 7 or second == 8 or second == 9:
+      second = "0"+str(second)
+    if minute == 0 or minute == 1 or minute == 2 or minute == 3 or minute == 4 or minute == 5 or minute == 6 or minute == 7 or minute == 8 or minute == 9:
+      minute = "0"+str(minute)
+    if hour == 0 or hour == 1 or hour == 2 or hour == 3 or hour == 4 or hour == 5 or hour == 6 or hour == 7 or hour == 8 or hour == 9:
+      hour = "0"+str(hour)
+    if day == 0 or day == 1 or day == 2 or day == 3 or day == 4 or day == 5 or day == 6 or day == 7 or day == 8 or day == 9:
+      day = "0"+str(day)
+    if month == 0 or month == 1 or month == 2 or month == 3 or month == 4 or month == 5 or month == 6 or month == 7 or month == 8 or month == 9:
+      month = "0"+str(month)
+
+    oled.write_line(0, 2, str(day)+"."+str(month)+"."+str(year)+" | "+str(hour)+":"+str(minute)+":"+str(second))
+
+    temperature = temp.get_temperature()
+    oled.write_line(5, 0, "Temperatur :     "+str(temperature/100.0))
 
 def cb_alarm(year, month, day, hour, minute, second, centisecond, weekday, timestamp):
     global opened
@@ -181,6 +181,7 @@ def cb_button2_state_changed(state):
             rlb2.set_color(0,brightness,0)
 
 if __name__ == "__main__":
+    time.sleep(10)
     ipcon = IPConnection() # Create IP connection
     rtc = BrickletRealTimeClock(UID_RTC, ipcon)   # Create device object
     dr = BrickletDualRelay(UID_DR, ipcon)         # Create device object
@@ -193,19 +194,27 @@ if __name__ == "__main__":
 
     ipcon.connect(HOST, PORT) # Connect to brickd
     # Don't use device before ipcon is connected
-
+    time.sleep(1)
+    oled.clear_display()
+    oled.write_line(1, 1, "Starting Application...")
+    
     #***********Brick-Config********************************************
     if silent == True:
         mb1.disable_status_led()
         mb2.disable_status_led()
+        oled.write_line(3, 1, "Mode: Silent")
     else:
         mb1.enable_status_led()
         mb2.enable_status_led()
+        oled.write_line(3, 1, "Mode: Debug")
 
     #***********Dual-Relay-Config***************************************
+    time.sleep(3)
     dr.set_state(False, False)
+    oled.write_line(4, 1, "Dual Relay: OK")
 
     #***********Button-Config*******************************************
+    time.sleep(10)
     rlb1.set_color(0, brightness, 0) # Tor oben
     rlb2.set_color(brightness, 0, 0) # Licht aus
 
@@ -217,8 +226,10 @@ if __name__ == "__main__":
         rlb2.set_status_led_config(rlb2.STATUS_LED_CONFIG_ON)
 
     rlb1.register_callback(rlb1.CALLBACK_BUTTON_STATE_CHANGED, cb_button1_state_changed)
+    oled.write_line(5, 1, "Button 1: OK")
     rlb2.register_callback(rlb2.CALLBACK_BUTTON_STATE_CHANGED, cb_button2_state_changed)
-
+    oled.write_line(6, 1, "Button 2: OK")
+    time.sleep(3)
     #***********RTC-Config**********************************************
     # Register date and time callback to function cb_date_time
     rtc.register_callback(rtc.CALLBACK_DATE_TIME, cb_date_time)
@@ -229,7 +240,8 @@ if __name__ == "__main__":
     # Note: The date and time callback is only called every 5 seconds
     #       if the date and time has changed since the last call!
     rtc.set_date_time_callback_period(1000)
-
+    oled.write_line(7, 1, "Clock: OK")
+    
     #***********OLED-Config*********************************************
     oled.clear_display()
     oled.write_line(3, 0, "Beleuchtung:      AUS")
