@@ -33,6 +33,10 @@ openH = 6
 openM = 30
 closeH = 21
 closeM = 0
+offH = 8
+offM = 0
+onH = 19
+onM = 0
 
 global lastTimestamp
 global opened
@@ -72,6 +76,16 @@ def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, t
           opened = 1
 
     if opened == 1:
+      if hour == offH:
+        if minute == offM:
+          dr.set_state(False, False)
+          oled.write_line(3, 0, "Beleuchtung:      AUS")
+          rlb2.set_color(brightness,0,0)
+      if hour == onH:
+        if minute == nM:
+          dr.set_state(False, True)
+          oled.write_line(3, 0, "Beleuchtung:      EIN")
+          rlb2.set_color(0,brightness,0)     
       if hour == closeH:
         #print("Correct close hour")
         if minute == closeM:
@@ -246,7 +260,7 @@ if __name__ == "__main__":
     oled.clear_display()
     oled.write_line(3, 0, "Beleuchtung:      AUS")
     oled.write_line(4, 0, "Beschattung:     OBEN")
-    oled.write_line(7, 0, "IP: 192.168.178.10")
+    oled.write_line(7, 0, "   IP: 192.168.178.10")
 
     raw_input("Press key to exit\n") # Use input() in Python 3
     ipcon.disconnect()
