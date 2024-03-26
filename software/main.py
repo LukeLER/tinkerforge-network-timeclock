@@ -82,7 +82,7 @@ def cb_date_time(year, month, day, hour, minute, second, centisecond, weekday, t
           oled.write_line(3, 0, "Beleuchtung:      AUS")
           rlb2.set_color(brightness,0,0)
       if hour == onH:
-        if minute == nM:
+        if minute == onM:
           dr.set_state(False, True)
           oled.write_line(3, 0, "Beleuchtung:      EIN")
           rlb2.set_color(0,brightness,0)     
